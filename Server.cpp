@@ -53,7 +53,46 @@ int main(int argc, char **argv)
   std::cout << "Logs from your program will appear here!\n";
 
   // accepting multiple connection with while loop
-  
+  char recv_buff[65536];
+  memset(recv_buff, '\0', sizeof(recv_buff));
+  // outer loop
+  while (1)
+  {
+    struct sockaddr_in clientAddress;
+    int socket_len = sizeof(clientAddress);
+    // first accept the connection
+    int conn = accept(socketServer, (struct sockaddr *)&clientAddress, (socklen_t *)&socket_len);
+    if (conn < 0)
+    {
+      std::cerr << "connection error";
+      return 1;
+    }
+
+    std::cout << "New client accepted" << std::endl;
+    // inner loop for receiving data
+    ssize_t bytes_received;
+    while ((bytes_received = recv(conn, recv_buff, sizeof(recv_buff), 0)) > 0)
+    {
+      std::cout << "Received bytes is" << bytes_received << std::endl;
+      std::cout << "Received data is" << recv_buff << std::endl;
+
+      std::string Response = "+PONG\r\n";
+      send(conn, Response.c_str(), Response.length(), 0);
+      memset(recv_buff, '\0', sizeof(recv_buff));
+    }
+
+    if (bytes_received == 0)
+    {
+      std::cout << "Client disconnected gracefully" << std::endl;
+    }
+    else if (bytes_received == -1)
+    {
+      std::cerr << "Data receiving error. Client may have disconnected." << std::endl;
+    }
+
+    // Close the connection after the client disconnects or on error
+    close(conn);
+  }
 
   close(socketServer);
 
