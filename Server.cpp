@@ -7,6 +7,102 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <thread>
+
+// define a function to interact with client
+void interactWithClient(int clientSocket)
+{
+  while (1)
+  {
+    char recv_buff[65536];
+    memset(recv_buff, '\0', sizeof(recv_buff));
+
+    ssize_t bytes_received = recv(clientSocket, recv_buff, sizeof(recv_buff), 0);
+
+    if (bytes_received > 0)
+    {
+      std::cout << "Received bytes is " << bytes_received << std::endl;
+      std::cout << "Received data is " << recv_buff << std::endl;
+
+      std::string Response = "+PONG\r\n";
+      send(clientSocket, Response.c_str(), Response.length(), 0);
+    }
+    else if (bytes_received == 0)
+    {
+      std::cout << "client disconnected" << std::endl;
+      break;
+    }
+    else
+    {
+      std::cerr << "data receiving error" << std::endl;
+      break;
+    }
+  }
+
+  close(clientSocket);
+}
+void interactWithClient(int clientSocket)
+{
+  while (1)
+  {
+    char recv_buff[65536];
+    memset(recv_buff, '\0', sizeof(recv_buff));
+
+    ssize_t bytes_received = recv(clientSocket, recv_buff, sizeof(recv_buff), 0);
+
+    if (bytes_received > 0)
+    {
+      std::cout << "Received bytes is " << bytes_received << std::endl;
+      std::cout << "Received data is " << recv_buff << std::endl;
+
+      std::string Response = "+PONG\r\n";
+      send(clientSocket, Response.c_str(), Response.length(), 0);
+    }
+    else if (bytes_received == 0)
+    {
+      std::cout << "client disconnected" << std::endl;
+      break;
+    }
+    else
+    {
+      std::cerr << "data receiving error" << std::endl;
+      break;
+    }
+  }
+
+  close(clientSocket);
+}
+void interactWithClient(int clientSocket)
+{
+  while (1)
+  {
+    char recv_buff[65536];
+    memset(recv_buff, '\0', sizeof(recv_buff));
+
+    ssize_t bytes_received = recv(clientSocket, recv_buff, sizeof(recv_buff), 0);
+
+    if (bytes_received > 0)
+    {
+      std::cout << "Received bytes is " << bytes_received << std::endl;
+      std::cout << "Received data is " << recv_buff << std::endl;
+
+      std::string Response = "+PONG\r\n";
+      send(clientSocket, Response.c_str(), Response.length(), 0);
+    }
+    else if (bytes_received == 0)
+    {
+      std::cout << "client disconnected" << std::endl;
+      break;
+    }
+    else
+    {
+      std::cerr << "data receiving error" << std::endl;
+      break;
+    }
+  }
+
+  close(clientSocket);
+}
 
 int main(int argc, char **argv)
 {
@@ -52,50 +148,28 @@ int main(int argc, char **argv)
   // You can use print statements as follows for debugging, they'll be visible when running tests.
   std::cout << "Logs from your program will appear here!\n";
 
-  // accepting multiple connection with while loop
-  char recv_buff[65536];
-  memset(recv_buff, '\0', sizeof(recv_buff));
-  // outer loop
+  // loop for running the program
   while (1)
   {
+
+    // accepting connection
     struct sockaddr_in clientAddress;
     int socket_len = sizeof(clientAddress);
     // first accept the connection
-    int conn = accept(socketServer, (struct sockaddr *)&clientAddress, (socklen_t *)&socket_len);
-    if (conn < 0)
+    int clientSocket = accept(socketServer, (struct sockaddr *)&clientAddress, (socklen_t *)&socket_len);
+    if (clientSocket < 0)
     {
       std::cerr << "connection error";
       return 1;
     }
 
-    std::cout << "New client accepted" << std::endl;
-    // inner loop for receiving data
-    ssize_t bytes_received;
-    while ((bytes_received = recv(conn, recv_buff, sizeof(recv_buff), 0)) > 0)
-    {
-      std::cout << "Received bytes is" << bytes_received << std::endl;
-      std::cout << "Received data is" << recv_buff << std::endl;
-
-      std::string Response = "+PONG\r\n";
-      send(conn, Response.c_str(), Response.length(), 0);
-      memset(recv_buff, '\0', sizeof(recv_buff));
-    }
-
-    if (bytes_received == 0)
-    {
-      std::cout << "Client disconnected gracefully" << std::endl;
-    }
-    else if (bytes_received == -1)
-    {
-      std::cerr << "Data receiving error. Client may have disconnected." << std::endl;
-    }
-
-    // Close the connection after the client disconnects or on error
-    close(conn);
+    std::cout << "New client accepted going to spawn a thread" << std::endl;
+    // Thread spawning for multiple connection
+    std::thread t1(interactWithClient, clientSocket);
+    t1.detach();
   }
 
   close(socketServer);
 
   return 0;
 }
-
