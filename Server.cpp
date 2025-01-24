@@ -9,7 +9,7 @@
 #include <netdb.h>
 #include <thread>
 
-// define a function to interact with client
+// define a function to interact with client with multiThreading
 void interactWithClient(int clientSocket)
 {
   while (1)
@@ -41,69 +41,6 @@ void interactWithClient(int clientSocket)
 
   close(clientSocket);
 }
-void interactWithClient(int clientSocket)
-{
-  while (1)
-  {
-    char recv_buff[65536];
-    memset(recv_buff, '\0', sizeof(recv_buff));
-
-    ssize_t bytes_received = recv(clientSocket, recv_buff, sizeof(recv_buff), 0);
-
-    if (bytes_received > 0)
-    {
-      std::cout << "Received bytes is " << bytes_received << std::endl;
-      std::cout << "Received data is " << recv_buff << std::endl;
-
-      std::string Response = "+PONG\r\n";
-      send(clientSocket, Response.c_str(), Response.length(), 0);
-    }
-    else if (bytes_received == 0)
-    {
-      std::cout << "client disconnected" << std::endl;
-      break;
-    }
-    else
-    {
-      std::cerr << "data receiving error" << std::endl;
-      break;
-    }
-  }
-
-  close(clientSocket);
-}
-void interactWithClient(int clientSocket)
-{
-  while (1)
-  {
-    char recv_buff[65536];
-    memset(recv_buff, '\0', sizeof(recv_buff));
-
-    ssize_t bytes_received = recv(clientSocket, recv_buff, sizeof(recv_buff), 0);
-
-    if (bytes_received > 0)
-    {
-      std::cout << "Received bytes is " << bytes_received << std::endl;
-      std::cout << "Received data is " << recv_buff << std::endl;
-
-      std::string Response = "+PONG\r\n";
-      send(clientSocket, Response.c_str(), Response.length(), 0);
-    }
-    else if (bytes_received == 0)
-    {
-      std::cout << "client disconnected" << std::endl;
-      break;
-    }
-    else
-    {
-      std::cerr << "data receiving error" << std::endl;
-      break;
-    }
-  }
-
-  close(clientSocket);
-}
-
 int main(int argc, char **argv)
 {
   // Flush after every std::cout / std::cerr
