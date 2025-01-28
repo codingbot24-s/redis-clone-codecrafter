@@ -8,8 +8,83 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <thread>
+#include <vector>
+#include <cctype>
+#include <algorithm>
 
-// define a function to interact with client with multiThreading
+// parse the incoming Resp message
+class RESPParser
+{
+  // Main Parsing function
+public:
+  static std::vector<std::string> parse_command(const char *buffer, ssize_t length)
+  {
+    std::vector<std::string> parts;
+    size_t pos = 0;
+
+    if (buffer == "*")
+    {
+      int num_elements = std::stoi(read_until_clrf(buffer, pos));
+
+      for (int i = 0; i < num_elements; i++)
+      {
+        pos = find_next_part(buffer, pos);
+        int string_length = std::stoi(read_until_clrf(buffer, pos));
+
+        std::string part = readStringOfLength(buffer, pos, string_length);
+        parts.push_back(part);
+      }
+    }
+    return parts;
+  }
+
+  static std::string toUpperCase(const std::string &input)
+  {
+    std::string upper = input;
+    std::transform(upper.begin(), upper.end(), upper.begin(),
+                   [](unsigned char c)
+                   { return std::toupper(c); });
+    return upper;
+  }
+
+  // Helper functions
+private:
+  static std::string read_until_clrf(const char *buffer, size_t &pos)
+  {
+    std::string result;
+    while (buffer[pos] != '\r')
+    {
+      result = result + buffer[pos];
+      pos++;
+    }
+    pos = pos + 2;
+    return result;
+  }
+  static size_t find_next_part(const char *buffer, size_t pos)
+  {
+    while (buffer[pos] != '$')
+    {
+      pos++;
+    }
+    return pos;
+  }
+  // Read a string of spacific length
+  static std::string readStringOfLength(const char *buffer, size_t &pos, int length)
+  {
+    std::string result;
+    pos += 1; // skip $
+    for (int i = 0; i < length; ++i)
+    {
+      result += buffer[pos++];
+    }
+    pos += 2; // skip \r\n
+    return result;
+  }
+};
+
+// Define a function to interact with client with multiThreading
+
+// TODO Move from multithreading to event loop
 void interactWithClient(int clientSocket)
 {
   while (1)
@@ -21,11 +96,24 @@ void interactWithClient(int clientSocket)
 
     if (bytes_received > 0)
     {
-      std::cout << "Received bytes is " << bytes_received << std::endl;
-      std::cout << "Received data is " << recv_buff << std::endl;
+      std::vector<std::string> command = RESPParser::parse_command(recv_buff, bytes_received);
 
-      std::string Response = "+PONG\r\n";
-      send(clientSocket, Response.c_str(), Response.length(), 0);
+      if (!command.empty())
+      {
+        std::string cmd = RESPParser::toUpperCase(command[0]);
+
+        if (cmd == "Ping")
+        {
+          std::string Response = "+PONG\r\n";
+          send(clientSocket, Response.c_str(), Response.length(), 0);
+        }
+        else if (cmd == "Echo" && command.size() > 1)
+        {
+          std::string arg = command[1];
+          std::string response = "$" + std::to_string(arg.length()) + "\r\n" + arg + "\r\n";
+          send(clientSocket, response.c_str(), response.length(), 0);
+        }
+      }
     }
     else if (bytes_received == 0)
     {
