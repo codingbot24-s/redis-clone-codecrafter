@@ -15,6 +15,54 @@
 
 // Define a function to interact with client with multiThreading
 
+
+class RESPParser {
+  public:
+  void log(std::string message) {
+    std::cout << message << std::endl;
+  }
+
+    char Integer = ':';
+    char String = '+';
+    char Bulk  = '$';
+    char Array = '*';
+    char Error = '-';
+    
+    struct RESP {
+      std::vector<std::string> Raw;
+      std::vector<std::string> Data;
+      int                      Count;
+      char                     Type;  
+    };
+
+  std::vector<std::string> RawData (RESP r) {
+    return r.Data;
+  };  
+
+  std::string Convert_String (RESP r) {
+    return std::string(r.Data[0]);
+  };
+
+  int Convert_Integer (RESP r) {
+    int i = std::stoi(r.Data[0]);
+    return i;
+  };
+
+  float Convert_Float (RESP r) {
+    float f = std::stof(r.Data[0]);
+    return f;
+  };
+  
+  // public:  
+  //   static std::vector<std::string> ParseCommand() {
+  
+    
+  // }
+
+  
+  
+};
+
 // TODO Move from multithreading to event loop
 void interactWithClient(int clientSocket)
 {
@@ -25,11 +73,14 @@ void interactWithClient(int clientSocket)
     ssize_t bytes_received = 0;
     if (bytes_received = recv(clientSocket, recv_buff, sizeof(recv_buff), 0) > 0)
     {
-      std::cout << "Received bytes is " << bytes_received << std::endl;
-      std::cout << "Received data is " << recv_buff << std::endl;
-      std::string Response = "+PONG\r\n";
-      send(clientSocket, Response.c_str(), Response.length(), 0);
-      memset(recv_buff, '\0', sizeof(recv_buff));
+      // std::cout << "Received bytes is " << bytes_received << std::endl;
+      // std::cout << "Received data is " << recv_buff << std::endl;
+      
+      
+      // Code for sending Pong to the client
+      // std::string Response = "+PONG\r\n";
+      // send(clientSocket, Response.c_str(), Response.length(), 0);
+      // memset(recv_buff, '\0', sizeof(recv_buff));
     }
     if (bytes_received == 0)
     {
